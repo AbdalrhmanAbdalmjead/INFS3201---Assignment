@@ -6,6 +6,7 @@ const fs = require("fs/promises")
 const EMPLOYEES_FILE = "employees.json"
 const SHIFTS_FILE = "shifts.json"
 const ASSIGNMENTS_FILE = "assignments.json"
+const CONFIG_FILE = "config.json"
 
 /**
  * reads a json file that has an array inside
@@ -45,6 +46,28 @@ async function writeJsonArray(filename, data) {
  */
 async function getAllEmployees() {
     return await readJsonArray(EMPLOYEES_FILE)
+}
+
+/**
+ * read config.json (maxDailyHours)
+ * if anything wrong, return default 9
+ * @returns {Promise<number>}
+ */
+async function getMaxDailyHours() {
+    try {
+        const text = await fs.readFile(CONFIG_FILE, "utf8")
+        const data = JSON.parse(text)
+
+        const hours = Number(data.maxDailyHours)
+
+        if (!hours || hours <= 0) {
+            return 9
+        }
+
+        return hours
+    } catch (err) {
+        return 9
+    }
 }
 
 /**
