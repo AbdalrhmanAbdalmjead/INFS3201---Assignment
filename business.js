@@ -5,6 +5,58 @@
 const persistence = require("./persistence")
 
 /**
+ * compute how many hours between startTime and endTime
+ * example: 11:00 to 13:30 = 2.5 hours
+ *
+ * LLM used: ChatGPT (GPT-5.2 Thinking)
+ *
+ * @param {string} startTime
+ * @param {string} endTime
+ * @returns {number}
+ */
+function computeShiftDuration(startTime, endTime) {
+    const s = String(startTime || "").trim()
+    const e = String(endTime || "").trim()
+
+    const sParts = s.split(":")
+    const eParts = e.split(":")
+
+    if (sParts.length !== 2 || eParts.length !== 2) {
+        return 0
+    }
+
+    const sh = Number(sParts[0])
+    const sm = Number(sParts[1])
+    const eh = Number(eParts[0])
+    const em = Number(eParts[1])
+
+    if (
+        Number.isNaN(sh) || Number.isNaN(sm) ||
+        Number.isNaN(eh) || Number.isNaN(em)
+    ) {
+        return 0
+    }
+
+    if (
+        sh < 0 || sh > 23 || eh < 0 || eh > 23 ||
+        sm < 0 || sm > 59 || em < 0 || em > 59
+    ) {
+        return 0
+    }
+
+    let startMinutes = sh * 60 + sm
+    let endMinutes = eh * 60 + em
+
+    if (endMinutes < startMinutes) {
+        endMinutes = endMinutes + 24 * 60
+    }
+
+    const diffMinutes = endMinutes - startMinutes
+    return diffMinutes / 60
+}
+
+
+/**
  * make new employee id like E001, E002 ...
  * @param {{employeeId:string}[]} employees
  * @returns {string}
