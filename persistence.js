@@ -190,5 +190,6 @@ module.exports = {
     getAllAssignments,
     addAssignment,
     findAssignment,
-    getAssignmentsByEmployee
+    getAssignmentsByEmployee,
+    getMaxDailyHours
 }
