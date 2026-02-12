@@ -111,7 +111,7 @@ async function addNewEmployee(name, phone) {
 }
 
 /**
- * assign employee to a shift (basic checks only for now)
+ * assign employee to a shift (with daily hours limit)
  * @param {string} employeeId
  * @param {string} shiftId
  * @returns {Promise<{ok:boolean,message:string}>}
@@ -139,10 +139,30 @@ async function assignEmployeeToShift(employeeId, shiftId) {
         return { ok: false, message: "Employee already assigned to shift" }
     }
 
+    const maxDailyHours = await persistence.getMaxDailyHours()
+
+    const assignments = await persistence.getAssignmentsByEmployee(empId)
+
+    let totalHoursToday = 0
+
+    for (let i = 0; i < assignments.length; i++) {
+        const s = await persistence.findShift(assignments[i].shiftId)
+        if (s && s.date === shift.date) {
+            totalHoursToday = totalHoursToday + computeShiftDuration(s.startTime, s.endTime)
+        }
+    }
+
+    const newShiftHours = computeShiftDuration(shift.startTime, shift.endTime)
+
+    if (totalHoursToday + newShiftHours > maxDailyHours) {
+        return { ok: false, message: "Employee exceeds daily hours limit" }
+    }
+
     await persistence.addAssignment({ employeeId: empId, shiftId: shId })
 
     return { ok: true, message: "Shift Recorded" }
 }
+
 
 /**
  * simple bubble sort for shifts (so it prints in order)
