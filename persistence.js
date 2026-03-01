@@ -1,7 +1,8 @@
 // persistence layer
-// this file only talks to json files (read/write)
+// this file only talks to the database and config file
+// no prompt and no console.log here
 
-// fix DNS problem for MongoDB Atlas (so host name can be resolved)
+// Fix DNS problem for MongoDB Atlas (so host name can be resolved)
 const { setServers } = require("node:dns/promises")
 setServers(["1.1.1.1", "8.8.8.8"])
 
@@ -12,28 +13,31 @@ const fs = require("fs/promises")
 const MONGODB_URI = process.env.MONGODB_URI
 const DB_NAME = process.env.DB_NAME || "infs3201_winter2026"
 
+const CONFIG_FILE = "config.json"
+
 let client = null
 
 /**
- * This function connects to MongoDB.
- * If the connection does not exist, it creates it.
- * It returns the database object.
- * @returns {Promise<any>}
+ * Connect to MongoDB and return the database object.
+ * We connect only once and reuse the same client.
+ * @returns {Promise<any>} MongoDB database object
  */
 async function getDb() {
+    if (!MONGODB_URI) {
+        throw new Error("Missing MONGODB_URI in .env file.")
+    }
+
     if (!client) {
         client = new MongoClient(MONGODB_URI)
         await client.connect()
     }
+
     return client.db(DB_NAME)
 }
 
-const CONFIG_FILE = "config.json"
-
 /**
- * This function gets all employees from MongoDB.
- * It reads from the "employees" collection.
- * @returns {Promise<any[]>}
+ * Get all employees from MongoDB (employees collection).
+ * @returns {Promise<any[]>} array of employee objects
  */
 async function getAllEmployees() {
     const db = await getDb()
@@ -41,9 +45,9 @@ async function getAllEmployees() {
 }
 
 /**
- * read config.json (maxDailyHours)
- * if anything wrong, return default 9
- * @returns {Promise<number>}
+ * Read maxDailyHours from config.json.
+ * If the file is missing or invalid, return default value 9.
+ * @returns {Promise<number>} max daily hours
  */
 async function getMaxDailyHours() {
     try {
@@ -51,7 +55,6 @@ async function getMaxDailyHours() {
         const data = JSON.parse(text)
 
         const hours = Number(data.maxDailyHours)
-
         if (!hours || hours <= 0) {
             return 9
         }
@@ -63,20 +66,20 @@ async function getMaxDailyHours() {
 }
 
 /**
- * Find one employee by employeeId in MongoDB
- * @param {string} employeeId
- * @returns {Promise<any|null>}
+ * Find one employee by employeeId in MongoDB.
+ * @param {string} employeeId - example "E003"
+ * @returns {Promise<any|null>} employee object or null if not found
  */
 async function findEmployee(employeeId) {
     const db = await getDb()
     const empId = String(employeeId || "").trim()
+
     return await db.collection("employees").findOne({ employeeId: empId })
 }
 
 /**
- * This function adds a new employee into MongoDB.
- * It inserts the employee object into the "employees" collection.
- * @param {any} employee - the employee object to save
+ * Add (insert) one employee document into MongoDB.
+ * @param {any} employee - employee object to insert
  * @returns {Promise<void>}
  */
 async function addEmployee(employee) {
@@ -85,9 +88,8 @@ async function addEmployee(employee) {
 }
 
 /**
- * This function gets all shifts from MongoDB.
- * It reads from the "shifts" collection.
- * @returns {Promise<any[]>}
+ * Get all shifts from MongoDB (shifts collection).
+ * @returns {Promise<any[]>} array of shift objects
  */
 async function getAllShifts() {
     const db = await getDb()
@@ -95,26 +97,48 @@ async function getAllShifts() {
 }
 
 /**
- * This function finds one shift in MongoDB using shiftId.
- * It searches inside the "shifts" collection.
- * If not found, it returns null.
- * @param {string} shiftId - the id of the shift (ex: S001)
- * @returns {Promise<any|null>}
+ * Find one shift by shiftId in MongoDB.
+ * @param {string} shiftId - example "S001"
+ * @returns {Promise<any|null>} shift object or null
  */
 async function findShift(shiftId) {
     const db = await getDb()
-    return await db.collection("shifts").findOne({ shiftId: shiftId })
+    const sId = String(shiftId || "").trim()
+
+    return await db.collection("shifts").findOne({ shiftId: sId })
 }
 
 /**
- * This function gets all assignments for one employee from MongoDB.
- * It reads from the "assignments" collection.
- * @param {string} employeeId - the id of the employee (ex: E001)
- * @returns {Promise<any[]>}
+ * Get all assignments for one employee from MongoDB.
+ * @param {string} employeeId - example "E001"
+ * @returns {Promise<any[]>} list of assignment objects
  */
 async function getAssignmentsByEmployee(employeeId) {
     const db = await getDb()
-    return await db.collection("assignments").find({ employeeId: employeeId }).toArray()
+    const empId = String(employeeId || "").trim()
+
+    return await db.collection("assignments").find({ employeeId: empId }).toArray()
+}
+
+/**
+ * Update one employee in MongoDB using updateOne (best practice).
+ * We DO NOT delete the whole collection.
+ * We only update name and phone for the matching employeeId.
+ * @param {string} employeeId - example "E003"
+ * @param {string} name - new name (already trimmed in business layer)
+ * @param {string} phone - new phone (already trimmed in business layer)
+ * @returns {Promise<boolean>} true if employee exists (matched), false otherwise
+ */
+async function updateEmployee(employeeId, name, phone) {
+    const db = await getDb()
+    const empId = String(employeeId || "").trim()
+
+    const result = await db.collection("employees").updateOne(
+        { employeeId: empId },
+        { $set: { name: name, phone: phone } }
+    )
+
+    return result.matchedCount > 0
 }
 
 module.exports = {
@@ -124,5 +148,6 @@ module.exports = {
     getAllShifts,
     findShift,
     getAssignmentsByEmployee,
-    getMaxDailyHours
+    getMaxDailyHours,
+    updateEmployee
 }

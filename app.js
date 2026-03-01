@@ -1,16 +1,14 @@
 const { setServers } = require("node:dns/promises")
 setServers(["1.1.1.1", "8.8.8.8"])
 
-
 const express = require("express")
 const { engine } = require("express-handlebars")
 const business = require("./business")
 
 const app = express()
 
-app.use(express.static("public"))
-
 app.use(express.urlencoded({ extended: false }))
+app.use(express.static("public"))
 
 app.engine("handlebars", engine({ defaultLayout: false }))
 app.set("view engine", "handlebars")
@@ -29,44 +27,78 @@ app.get("/", async (req, res) => {
 })
 
 /**
- * Employee details page
+ * Employee details page (name, phone, edit link, shifts table)
  * URL: GET /employee/:id
  * @param {any} req
  * @param {any} res
  * @returns {Promise<void>}
  */
 app.get("/employee/:id", async (req, res) => {
-
     const employeeId = String(req.params.id || "").trim()
-
     const result = await business.getEmployeeDetailsPage(employeeId)
 
     if (!result.ok) {
         return res.send(result.message)
     }
 
-    const rows = result.rows
+    const rows = result.rows || []
 
-    
     for (let i = 0; i < rows.length; i++) {
         const start = String(rows[i].startTime || "")
         const hour = Number(start.split(":")[0])
         rows[i].isMorning = !Number.isNaN(hour) && hour < 12
     }
 
-    
     res.render("employee", {
         employee: result.employee,
         rows: rows
     })
 })
 
+/**
+ * Show edit form (prefilled)
+ * URL: GET /edit/:id
+ * @param {any} req
+ * @param {any} res
+ * @returns {Promise<void>}
+ */
+app.get("/edit/:id", async (req, res) => {
+    const employeeId = String(req.params.id || "").trim()
+    const employee = await business.getEmployeeById(employeeId)
+
+    if (!employee) {
+        return res.send("Employee not found.")
+    }
+
+    res.render("edit", { employee })
+})
 
 /**
- * This route shows the add employee form.
- * It simply renders the add.handlebars page.
- * @param {any} req - express request object
- * @param {any} res - express response object
+ * Handle edit submit (server validation + updateOne + PRG redirect)
+ * URL: POST /edit/:id
+ * @param {any} req
+ * @param {any} res
+ * @returns {Promise<void>}
+ */
+app.post("/edit/:id", async (req, res) => {
+    const employeeId = String(req.params.id || "").trim()
+    const name = req.body.name
+    const phone = req.body.phone
+
+    const result = await business.updateEmployeeDetails(employeeId, name, phone)
+
+    if (!result.ok) {
+        return res.send(result.message)
+    }
+
+    res.redirect("/")
+})
+
+/**
+ * Add employee form
+ * URL: GET /add
+ * @param {any} req
+ * @param {any} res
  * @returns {void}
  */
 app.get("/add", (req, res) => {
@@ -74,12 +106,10 @@ app.get("/add", (req, res) => {
 })
 
 /**
- * This route handles the add employee form submission.
- * It performs server-side validation using the business layer.
- * If there is an error, it re-renders the form with an error message.
- * If successful, it redirects to the home page.
- * @param {any} req - express request object
- * @param {any} res - express response object
+ * Add employee submit
+ * URL: POST /add
+ * @param {any} req
+ * @param {any} res
  * @returns {Promise<void>}
  */
 app.post("/add", async (req, res) => {
@@ -96,29 +126,7 @@ app.post("/add", async (req, res) => {
 })
 
 /**
- * This route shows the schedule of one employee.
- * It gets the employeeId from the URL parameter.
- * It loads schedule data from the business layer.
- * If employee does not exist, it shows an error.
- * @param {any} req - express request object
- * @param {any} res - express response object
- * @returns {Promise<void>}
- */
-app.get("/schedule/:id", async (req, res) => {
-    const employeeId = req.params.id
-
-    const result = await business.getEmployeeSchedule(employeeId)
-
-    if (!result.ok) {
-        return res.render("schedule", { error: "Employee not found." })
-    }
-
-    res.render("schedule", { rows: result.rows, employeeId })
-})
-
-/**
- * This function starts the Express server
- * on port 8000.
+ * Start server on port 8000
  * @returns {void}
  */
 app.listen(8000, () => {
