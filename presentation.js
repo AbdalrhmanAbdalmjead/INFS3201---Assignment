@@ -14,9 +14,8 @@ function printMenu() {
     console.log("")
     console.log("1. Show all employees")
     console.log("2. Add new employee")
-    console.log("3. Assign employee to shift")
-    console.log("4. View employee schedule")
-    console.log("5. Exit")
+    console.log("3. View employee schedule")
+    console.log("4. Exit")
 }
 
 /**
@@ -94,18 +93,6 @@ async function addEmployeeMenu() {
 }
 
 /**
- * option 3: assign shift
- * @returns {Promise<void>}
- */
-async function assignEmployeeMenu() {
-    const employeeId = prompt("Enter employee ID: ").trim()
-    const shiftId = prompt("Enter shift ID: ").trim()
-
-    const result = await business.assignEmployeeToShift(employeeId, shiftId)
-    console.log(result.message)
-}
-
-/**
  * option 4: view schedule
  * @returns {Promise<void>}
  */
@@ -141,10 +128,8 @@ async function main() {
         } else if (choice === "2") {
             await addEmployeeMenu()
         } else if (choice === "3") {
-            await assignEmployeeMenu()
-        } else if (choice === "4") {
             await viewScheduleMenu()
-        } else if (choice === "5") {
+        } else if (choice === "4") {
             break
         } else {
             console.log("Invalid choice")
