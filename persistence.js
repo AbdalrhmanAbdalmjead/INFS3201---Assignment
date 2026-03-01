@@ -98,31 +98,28 @@ async function getMaxDailyHours() {
 }
 
 /**
- * find one employee by id
- * @param {string} employeeId
- * @returns {Promise<any|undefined>}
+ * This function finds one employee in MongoDB
+ * using the employeeId.
+ * It searches inside the "employees" collection.
+ * If found, it returns the employee object.
+ * If not found, it returns null.
+ * @param {string} employeeId - the id of the employee (ex: E001)
+ * @returns {Promise<any|null>}
  */
 async function findEmployee(employeeId) {
-    const employees = await readJsonArray(EMPLOYEES_FILE)
-
-    for (let i = 0; i < employees.length; i++) {
-        if (employees[i].employeeId === employeeId) {
-            return employees[i]
-        }
-    }
-
-    return undefined
+    const db = await getDb()
+    return await db.collection("employees").findOne({ employeeId: employeeId })
 }
 
 /**
- * add one employee to employees.json
- * @param {any} employee
+ * This function adds a new employee into MongoDB.
+ * It inserts the employee object into the "employees" collection.
+ * @param {any} employee - the employee object to save
  * @returns {Promise<void>}
  */
 async function addEmployee(employee) {
-    const employees = await readJsonArray(EMPLOYEES_FILE)
-    employees.push(employee)
-    await writeJsonArray(EMPLOYEES_FILE, employees)
+    const db = await getDb()
+    await db.collection("employees").insertOne(employee)
 }
 
 /**
