@@ -124,46 +124,6 @@ async function findShift(shiftId) {
 }
 
 /**
- * get all assignments
- * @returns {Promise<any[]>}
- */
-async function getAllAssignments() {
-    return await readJsonArray(ASSIGNMENTS_FILE)
-}
-
-/**
- * add one assignment (employeeId + shiftId)
- * @param {{employeeId:string, shiftId:string}} assignment
- * @returns {Promise<void>}
- */
-async function addAssignment(assignment) {
-    const assignments = await readJsonArray(ASSIGNMENTS_FILE)
-    assignments.push(assignment)
-    await writeJsonArray(ASSIGNMENTS_FILE, assignments)
-}
-
-/**
- * check if assignment exists already
- * @param {string} employeeId
- * @param {string} shiftId
- * @returns {Promise<any|undefined>}
- */
-async function findAssignment(employeeId, shiftId) {
-    const assignments = await readJsonArray(ASSIGNMENTS_FILE)
-
-    for (let i = 0; i < assignments.length; i++) {
-        if (
-            assignments[i].employeeId === employeeId &&
-            assignments[i].shiftId === shiftId
-        ) {
-            return assignments[i]
-        }
-    }
-
-    return undefined
-}
-
-/**
  * get all assignments for one employee
  * @param {string} employeeId
  * @returns {Promise<any[]>}
@@ -187,9 +147,6 @@ module.exports = {
     addEmployee,
     getAllShifts,
     findShift,
-    getAllAssignments,
-    addAssignment,
-    findAssignment,
     getAssignmentsByEmployee,
     getMaxDailyHours
 }
