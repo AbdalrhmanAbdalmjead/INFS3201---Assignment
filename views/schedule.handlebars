@@ -1,0 +1,26 @@
+<h1>Schedule for {{employeeId}}</h1>
+
+{{#if error}}
+<p style="color:red;">{{error}}</p>
+{{/if}}
+
+{{#if rows}}
+<table border="1">
+    <tr>
+        <th>Date</th>
+        <th>Start Time</th>
+        <th>End Time</th>
+    </tr>
+
+    {{#each rows}}
+    <tr>
+        <td>{{this.date}}</td>
+        <td>{{this.startTime}}</td>
+        <td>{{this.endTime}}</td>
+    </tr>
+    {{/each}}
+</table>
+{{/if}}
+
+<br />
+<a href="/">Back</a>

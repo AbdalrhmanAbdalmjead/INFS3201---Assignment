@@ -1,0 +1,21 @@
+<h1>Employees</h1>
+
+<a href="/add">Add New Employee</a>
+
+<table border="1">
+    <tr>
+        <th>Employee ID</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Schedule</th>
+    </tr>
+
+    {{#each employees}}
+    <tr>
+        <td>{{this.employeeId}}</td>
+        <td>{{this.name}}</td>
+        <td>{{this.phone}}</td>
+        <td><a href="/schedule/{{this.employeeId}}">View Schedule</a></td>
+    </tr>
+    {{/each}}
+</table>
