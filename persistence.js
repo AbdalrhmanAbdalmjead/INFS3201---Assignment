@@ -1,7 +1,32 @@
 // persistence layer
 // this file only talks to json files (read/write)
 
+// fix DNS problem for MongoDB Atlas (so host name can be resolved)
+const { setServers } = require("node:dns/promises")
+setServers(["1.1.1.1", "8.8.8.8"])
+
+require("dotenv").config()
+const { MongoClient } = require("mongodb")
 const fs = require("fs/promises")
+
+const MONGODB_URI = process.env.MONGODB_URI
+const DB_NAME = process.env.DB_NAME || "infs3201_winter2026"
+
+let client = null
+
+/**
+ * This function connects to MongoDB.
+ * If the connection does not exist, it creates it.
+ * It returns the database object.
+ * @returns {Promise<any>}
+ */
+async function getDb() {
+    if (!client) {
+        client = new MongoClient(MONGODB_URI)
+        await client.connect()
+    }
+    return client.db(DB_NAME)
+}
 
 const EMPLOYEES_FILE = "employees.json"
 const SHIFTS_FILE = "shifts.json"
@@ -41,11 +66,13 @@ async function writeJsonArray(filename, data) {
 }
 
 /**
- * get all employees
+ * This function gets all employees from MongoDB.
+ * It reads from the "employees" collection.
  * @returns {Promise<any[]>}
  */
 async function getAllEmployees() {
-    return await readJsonArray(EMPLOYEES_FILE)
+    const db = await getDb()
+    return await db.collection("employees").find({}).toArray()
 }
 
 /**
