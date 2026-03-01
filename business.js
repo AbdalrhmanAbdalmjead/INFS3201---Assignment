@@ -111,60 +111,6 @@ async function addNewEmployee(name, phone) {
 }
 
 /**
- * assign employee to a shift (with daily hours limit)
- * @param {string} employeeId
- * @param {string} shiftId
- * @returns {Promise<{ok:boolean,message:string}>}
- */
-async function assignEmployeeToShift(employeeId, shiftId) {
-    const empId = String(employeeId || "").trim()
-    const shId = String(shiftId || "").trim()
-
-    if (empId === "" || shId === "") {
-        return { ok: false, message: "Invalid input." }
-    }
-
-    const employee = await persistence.findEmployee(empId)
-    if (!employee) {
-        return { ok: false, message: "Employee does not exist" }
-    }
-
-    const shift = await persistence.findShift(shId)
-    if (!shift) {
-        return { ok: false, message: "Shift does not exist" }
-    }
-
-    const existing = await persistence.findAssignment(empId, shId)
-    if (existing) {
-        return { ok: false, message: "Employee already assigned to shift" }
-    }
-
-    const maxDailyHours = await persistence.getMaxDailyHours()
-
-    const assignments = await persistence.getAssignmentsByEmployee(empId)
-
-    let totalHoursToday = 0
-
-    for (let i = 0; i < assignments.length; i++) {
-        const s = await persistence.findShift(assignments[i].shiftId)
-        if (s && s.date === shift.date) {
-            totalHoursToday = totalHoursToday + computeShiftDuration(s.startTime, s.endTime)
-        }
-    }
-
-    const newShiftHours = computeShiftDuration(shift.startTime, shift.endTime)
-
-    if (totalHoursToday + newShiftHours > maxDailyHours) {
-        return { ok: false, message: "Employee exceeds daily hours limit" }
-    }
-
-    await persistence.addAssignment({ employeeId: empId, shiftId: shId })
-
-    return { ok: true, message: "Shift Recorded" }
-}
-
-
-/**
  * simple bubble sort for shifts (so it prints in order)
  * @param {{date:string,startTime:string,endTime:string}[]} rows
  * @returns {void}
@@ -215,7 +161,6 @@ async function getEmployeeSchedule(employeeId) {
 module.exports = {
     getEmployees,
     addNewEmployee,
-    assignEmployeeToShift,
     getEmployeeSchedule,
     computeShiftDuration
 }
