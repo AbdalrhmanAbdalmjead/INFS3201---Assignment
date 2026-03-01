@@ -63,17 +63,14 @@ async function getMaxDailyHours() {
 }
 
 /**
- * This function finds one employee in MongoDB
- * using the employeeId.
- * It searches inside the "employees" collection.
- * If found, it returns the employee object.
- * If not found, it returns null.
- * @param {string} employeeId - the id of the employee (ex: E001)
+ * Find one employee by employeeId in MongoDB
+ * @param {string} employeeId
  * @returns {Promise<any|null>}
  */
 async function findEmployee(employeeId) {
     const db = await getDb()
-    return await db.collection("employees").findOne({ employeeId: employeeId })
+    const empId = String(employeeId || "").trim()
+    return await db.collection("employees").findOne({ employeeId: empId })
 }
 
 /**

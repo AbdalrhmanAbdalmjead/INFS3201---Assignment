@@ -14,16 +14,33 @@ app.set("view engine", "handlebars")
 app.set("views", "./views")
 
 /**
- * This route shows the home page.
- * It loads all employees from the business layer
- * and sends them to the home.handlebars view.
- * @param {any} req - express request object
- * @param {any} res - express response object
+ * Landing page: list employee names as links
+ * URL: GET /
+ * @param {any} req
+ * @param {any} res
  * @returns {Promise<void>}
  */
 app.get("/", async (req, res) => {
     const employees = await business.getEmployees()
     res.render("home", { employees })
+})
+
+/**
+ * Employee details page (basic version for now)
+ * URL: GET /employee/E001
+ * @param {any} req
+ * @param {any} res
+ * @returns {Promise<void>}
+ */
+app.get("/employee/:id", async (req, res) => {
+    const employeeId = String(req.params.id || "").trim()
+
+    const employee = await business.getEmployeeById(employeeId)
+    if (!employee) {
+        return res.send("Employee not found.")
+    }
+
+    res.render("employee", { employee })
 })
 
 /**

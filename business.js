@@ -158,9 +158,26 @@ async function getEmployeeSchedule(employeeId) {
     return { ok: true, rows: rows }
 }
 
+/**
+ * Get one employee by id
+ * @param {string} employeeId
+ * @returns {Promise<any|null>}
+ */
+async function getEmployeeById(employeeId) {
+    const empId = String(employeeId || "").trim()
+    const employee = await persistence.findEmployee(empId)
+
+    if (!employee) {
+        return null
+    }
+
+    return employee
+}
+
 module.exports = {
     getEmployees,
     addNewEmployee,
     getEmployeeSchedule,
-    computeShiftDuration
+    computeShiftDuration,
+    getEmployeeById
 }
