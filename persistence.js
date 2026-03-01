@@ -28,42 +28,7 @@ async function getDb() {
     return client.db(DB_NAME)
 }
 
-const EMPLOYEES_FILE = "employees.json"
-const SHIFTS_FILE = "shifts.json"
-const ASSIGNMENTS_FILE = "assignments.json"
 const CONFIG_FILE = "config.json"
-
-/**
- * reads a json file that has an array inside
- * if file missing or error, return []
- * @param {string} filename
- * @returns {Promise<any[]>}
- */
-async function readJsonArray(filename) {
-    try {
-        const text = await fs.readFile(filename, "utf8")
-        const data = JSON.parse(text)
-
-        if (Array.isArray(data)) {
-            return data
-        }
-
-        return []
-    } catch (err) {
-        return []
-    }
-}
-
-/**
- * saves an array into a json file
- * @param {string} filename
- * @param {any[]} data
- * @returns {Promise<void>}
- */
-async function writeJsonArray(filename, data) {
-    const text = JSON.stringify(data, null, 4)
-    await fs.writeFile(filename, text, "utf8")
-}
 
 /**
  * This function gets all employees from MongoDB.
@@ -123,46 +88,36 @@ async function addEmployee(employee) {
 }
 
 /**
- * get all shifts
+ * This function gets all shifts from MongoDB.
+ * It reads from the "shifts" collection.
  * @returns {Promise<any[]>}
  */
 async function getAllShifts() {
-    return await readJsonArray(SHIFTS_FILE)
+    const db = await getDb()
+    return await db.collection("shifts").find({}).toArray()
 }
 
 /**
- * find one shift by id
- * @param {string} shiftId
- * @returns {Promise<any|undefined>}
+ * This function finds one shift in MongoDB using shiftId.
+ * It searches inside the "shifts" collection.
+ * If not found, it returns null.
+ * @param {string} shiftId - the id of the shift (ex: S001)
+ * @returns {Promise<any|null>}
  */
 async function findShift(shiftId) {
-    const shifts = await readJsonArray(SHIFTS_FILE)
-
-    for (let i = 0; i < shifts.length; i++) {
-        if (shifts[i].shiftId === shiftId) {
-            return shifts[i]
-        }
-    }
-
-    return undefined
+    const db = await getDb()
+    return await db.collection("shifts").findOne({ shiftId: shiftId })
 }
 
 /**
- * get all assignments for one employee
- * @param {string} employeeId
+ * This function gets all assignments for one employee from MongoDB.
+ * It reads from the "assignments" collection.
+ * @param {string} employeeId - the id of the employee (ex: E001)
  * @returns {Promise<any[]>}
  */
 async function getAssignmentsByEmployee(employeeId) {
-    const assignments = await readJsonArray(ASSIGNMENTS_FILE)
-    const result = []
-
-    for (let i = 0; i < assignments.length; i++) {
-        if (assignments[i].employeeId === employeeId) {
-            result.push(assignments[i])
-        }
-    }
-
-    return result
+    const db = await getDb()
+    return await db.collection("assignments").find({ employeeId: employeeId }).toArray()
 }
 
 module.exports = {
