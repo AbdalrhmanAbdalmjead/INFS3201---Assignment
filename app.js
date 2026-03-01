@@ -1,11 +1,14 @@
 const { setServers } = require("node:dns/promises")
 setServers(["1.1.1.1", "8.8.8.8"])
 
+
 const express = require("express")
 const { engine } = require("express-handlebars")
 const business = require("./business")
 
 const app = express()
+
+app.use(express.static("public"))
 
 app.use(express.urlencoded({ extended: false }))
 
@@ -26,22 +29,38 @@ app.get("/", async (req, res) => {
 })
 
 /**
- * Employee details page (basic version for now)
- * URL: GET /employee/E001
+ * Employee details page
+ * URL: GET /employee/:id
  * @param {any} req
  * @param {any} res
  * @returns {Promise<void>}
  */
 app.get("/employee/:id", async (req, res) => {
+
     const employeeId = String(req.params.id || "").trim()
 
-    const employee = await business.getEmployeeById(employeeId)
-    if (!employee) {
-        return res.send("Employee not found.")
+    const result = await business.getEmployeeDetailsPage(employeeId)
+
+    if (!result.ok) {
+        return res.send(result.message)
     }
 
-    res.render("employee", { employee })
+    const rows = result.rows
+
+    
+    for (let i = 0; i < rows.length; i++) {
+        const start = String(rows[i].startTime || "")
+        const hour = Number(start.split(":")[0])
+        rows[i].isMorning = !Number.isNaN(hour) && hour < 12
+    }
+
+    
+    res.render("employee", {
+        employee: result.employee,
+        rows: rows
+    })
 })
+
 
 /**
  * This route shows the add employee form.

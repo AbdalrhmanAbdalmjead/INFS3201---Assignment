@@ -174,10 +174,32 @@ async function getEmployeeById(employeeId) {
     return employee
 }
 
+/**
+ * Get employee details + his shifts (sorted) for the employee details page
+ * @param {string} employeeId
+ * @returns {Promise<{ok:boolean, employee?:any, rows?:any[], message?:string}>}
+ */
+async function getEmployeeDetailsPage(employeeId) {
+    const empId = String(employeeId || "").trim()
+
+    const employee = await persistence.findEmployee(empId)
+    if (!employee) {
+        return { ok: false, message: "Employee not found." }
+    }
+
+    const result = await getEmployeeSchedule(empId)
+    if (!result.ok) {
+        return { ok: true, employee, rows: [] }
+    }
+
+    return { ok: true, employee, rows: result.rows }
+}
+
 module.exports = {
     getEmployees,
     addNewEmployee,
     getEmployeeSchedule,
     computeShiftDuration,
-    getEmployeeById
+    getEmployeeById,
+     getEmployeeDetailsPage
 }

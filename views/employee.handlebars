@@ -1,4 +1,32 @@
+<link rel="stylesheet" href="/style.css">
 <h1>Employee Details</h1>
 
 <p>Name: {{employee.name}}</p>
 <p>Phone: {{employee.phone}}</p>
+
+<p><a href="/edit/{{employee.employeeId}}">Edit Details</a></p>
+
+<h2>Shifts</h2>
+
+<table border="1" cellpadding="6">
+    <tr>
+        <th>Date</th>
+        <th>Start Time</th>
+        <th>End Time</th>
+    </tr>
+
+    {{#each rows}}
+        <tr>
+            <td>{{this.date}}</td>
+
+            {{!-- highlight if startTime before 12:00 --}}
+            {{#if this.isMorning}}
+                <td class="morning">{{this.startTime}}</td>
+            {{else}}
+                <td>{{this.startTime}}</td>
+            {{/if}}
+
+            <td>{{this.endTime}}</td>
+        </tr>
+    {{/each}}
+</table>
