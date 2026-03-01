@@ -48,7 +48,6 @@ function printMenu() {
     console.log("")
     console.log("1. Show all employees")
     console.log("2. Add new employee")
-    console.log("3. Assign employee to shift")
     console.log("4. View employee schedule")
     console.log("5. Exit")
 }
@@ -175,73 +174,6 @@ function employeeExists(employees, employeeId) {
     return false
 }
 
-/**
- * Checks if a shift ID exists.
- * @param {{shiftId:string}[]} shifts
- * @param {string} shiftId
- * @returns {boolean}
- */
-function shiftExists(shifts, shiftId) {
-    for (let i = 0; i < shifts.length; i++) {
-        if (shifts[i].shiftId === shiftId) {
-            return true
-        }
-    }
-    return false
-}
-
-/**
- * Checks if the employee is already assigned to the same shift.
- * @param {{employeeId:string, shiftId:string}[]} assignments
- * @param {string} employeeId
- * @param {string} shiftId
- * @returns {boolean}
- */
-function isAlreadyAssigned(assignments, employeeId, shiftId) {
-    for (let i = 0; i < assignments.length; i++) {
-        if (
-            assignments[i].employeeId === employeeId &&
-            assignments[i].shiftId === shiftId
-        ) {
-            return true
-        }
-    }
-    return false
-}
-
-/**
- * Option 3:
- * Assigns an employee to a shift after checking rules.
- * @returns {Promise<void>}
- */
-async function assignEmployeeToShift() {
-    const employeeId = prompt("Enter employee ID: ").trim()
-    const shiftId = prompt("Enter shift ID: ").trim()
-
-    const employees = await readJsonArray(EMPLOYEES_FILE)
-    const shifts = await readJsonArray(SHIFTS_FILE)
-    const assignments = await readJsonArray(ASSIGNMENTS_FILE)
-
-    if (!employeeExists(employees, employeeId)) {
-        console.log("Employee does not exist")
-        return
-    }
-
-    if (!shiftExists(shifts, shiftId)) {
-        console.log("Shift does not exist")
-        return
-    }
-
-    if (isAlreadyAssigned(assignments, employeeId, shiftId)) {
-        console.log("Employee already assigned to shift")
-        return
-    }
-
-    assignments.push({ employeeId, shiftId })
-    await writeJsonArray(ASSIGNMENTS_FILE, assignments)
-
-    console.log("Shift Recorded")
-}
 
 /**
  * Finds a shift by shift ID.
@@ -327,9 +259,7 @@ async function main() {
             await showAllEmployees()
         } else if (choice === "2") {
             await addNewEmployee()
-        } else if (choice === "3") {
-            await assignEmployeeToShift()
-        } else if (choice === "4") {
+        }  else if (choice === "4") {
             await viewEmployeeSchedule()
         } else if (choice === "5") {
             break
