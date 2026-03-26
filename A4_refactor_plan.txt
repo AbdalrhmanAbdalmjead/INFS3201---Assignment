@@ -1,0 +1,41 @@
+Assignment 4 Refactor Plan
+
+1. Collections that will change
+- employees collection will remove employeeId and use MongoDB _id only.
+- shifts collection will remove shiftId and use MongoDB _id only.
+- shifts collection will add an employees array that stores employee ObjectId values.
+- assignments collection will be removed after the employee ObjectIds are embedded into shifts.
+- a new users collection will be added for login.
+- a new security_log collection will be added for access logging.
+
+2. Persistence functions to modify or remove
+- findEmployee(employeeId) must be changed to use _id instead of employeeId.
+- updateEmployee(employeeId, name, phone) must be changed to update by _id.
+- findShift(shiftId) must be changed or removed because shifts will use _id.
+- getAssignmentsByEmployee(employeeId) will be removed because assignments collection will be removed.
+- new functions will be needed to:
+  - find a user by username
+  - create and read sessions
+  - delete sessions on logout
+  - insert security log records
+  - get employee shifts by checking the employees array inside shifts
+
+3. Business logic changes
+- functions that still use employeeId and shiftId must be changed to use _id.
+- employee details page must load shifts by checking whether the employee ObjectId exists in the shift employees array.
+- edit employee details must update using employee _id.
+- login logic must validate username and hashed password.
+- logout logic must remove the session and clear the cookie.
+
+4. Effect of embedded arrays on updates
+- instead of saving employee-shift links in a separate assignments collection, the employee ObjectId will be stored directly inside each shift document.
+- adding an employee to a shift will require updating the shift document employees array.
+- reading employee schedules will require searching shifts where the employee ObjectId exists in the employees array.
+
+5. Risks and complications
+- ObjectId is not a normal string, so conversion will be needed in the code.
+- old routes and links may fail if they still use employeeId instead of _id.
+- if the transformation program is run incorrectly, data may become duplicated or incomplete.
+- login and session logic may fail if cookies are missing or expired.
+- every protected route must check session validity.
+- every request must be logged correctly in the security_log collection.
