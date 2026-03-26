@@ -4,15 +4,59 @@ setServers(["1.1.1.1", "8.8.8.8"])
 const express = require("express")
 const { engine } = require("express-handlebars")
 const business = require("./business")
+const cookieParser = require("cookie-parser")
 
 const app = express()
 
+app.use(cookieParser())
 app.use(express.urlencoded({ extended: false }))
 app.use(express.static("public"))
 
 app.engine("handlebars", engine({ defaultLayout: false }))
 app.set("view engine", "handlebars")
 app.set("views", "./views")
+
+
+async function checkAuth(req, res, next) {
+    const sessionKey = req.cookies?.sessionKey
+
+    if (!sessionKey) {
+        return res.redirect("/login?message=Please login first")
+    }
+
+    const session = await business.getSession(sessionKey)
+
+    if (!session) {
+        return res.redirect("/login?message=Session not found")
+    }
+
+    if (new Date(session.expiry) < new Date()) {
+        return res.redirect("/login?message=Session expired")
+    }
+
+    // extend expiry by 5 minutes
+    await business.updateSession({
+        key: sessionKey,
+        expiry: new Date(Date.now() + 1000 * 60 * 5),
+        data: session.data
+    })
+
+    // extend cookie
+    res.setHeader(
+        "Set-Cookie",
+        "sessionKey=" + sessionKey + "; Max-Age=300; HttpOnly; Path=/"
+    )
+
+    next()
+}
+
+app.use(async (req, res, next) => {
+    if (req.path === "/login" || req.path === "/logout") {
+        return next()
+    }
+
+    return await checkAuth(req, res, next)
+})
 
 /**
  * Show login page
