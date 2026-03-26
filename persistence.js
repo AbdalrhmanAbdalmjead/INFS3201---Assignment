@@ -2,12 +2,11 @@
 // this file only talks to the database and config file
 // no prompt and no console.log here
 
-// Fix DNS problem for MongoDB Atlas (so host name can be resolved)
 const { setServers } = require("node:dns/promises")
 setServers(["1.1.1.1", "8.8.8.8"])
 
 require("dotenv").config()
-const { MongoClient } = require("mongodb")
+const { MongoClient, ObjectId } = require("mongodb")
 const fs = require("fs/promises")
 
 const MONGODB_URI = process.env.MONGODB_URI
@@ -66,20 +65,26 @@ async function getMaxDailyHours() {
 }
 
 /**
- * Find one employee by employeeId in MongoDB.
- * @param {string} employeeId - example "E003"
+ * Find one employee by _id in MongoDB.
+ * @param {string} employeeId
  * @returns {Promise<any|null>} employee object or null if not found
  */
 async function findEmployee(employeeId) {
     const db = await getDb()
     const empId = String(employeeId || "").trim()
 
-    return await db.collection("employees").findOne({ employeeId: empId })
+    if (!ObjectId.isValid(empId)) {
+        return null
+    }
+
+    return await db.collection("employees").findOne({
+        _id: new ObjectId(empId)
+    })
 }
 
 /**
  * Add (insert) one employee document into MongoDB.
- * @param {any} employee - employee object to insert
+ * @param {any} employee
  * @returns {Promise<void>}
  */
 async function addEmployee(employee) {
@@ -97,44 +102,41 @@ async function getAllShifts() {
 }
 
 /**
- * Find one shift by shiftId in MongoDB.
- * @param {string} shiftId - example "S001"
- * @returns {Promise<any|null>} shift object or null
+ * Get all shifts for one employee by checking embedded employees array.
+ * @param {string} employeeId
+ * @returns {Promise<any[]>} list of shift objects
  */
-async function findShift(shiftId) {
-    const db = await getDb()
-    const sId = String(shiftId || "").trim()
-
-    return await db.collection("shifts").findOne({ shiftId: sId })
-}
-
-/**
- * Get all assignments for one employee from MongoDB.
- * @param {string} employeeId - example "E001"
- * @returns {Promise<any[]>} list of assignment objects
- */
-async function getAssignmentsByEmployee(employeeId) {
+async function getShiftsByEmployee(employeeId) {
     const db = await getDb()
     const empId = String(employeeId || "").trim()
 
-    return await db.collection("assignments").find({ employeeId: empId }).toArray()
+    if (!ObjectId.isValid(empId)) {
+        return []
+    }
+
+    return await db.collection("shifts").find({
+        employees: new ObjectId(empId)
+    }).toArray()
 }
 
 /**
- * Update one employee in MongoDB using updateOne (best practice).
- * We DO NOT delete the whole collection.
- * We only update name and phone for the matching employeeId.
- * @param {string} employeeId - example "E003"
- * @param {string} name - new name (already trimmed in business layer)
- * @param {string} phone - new phone (already trimmed in business layer)
- * @returns {Promise<boolean>} true if employee exists (matched), false otherwise
+ * Update one employee in MongoDB using updateOne.
+ * We only update name and phone for the matching _id.
+ * @param {string} employeeId
+ * @param {string} name
+ * @param {string} phone
+ * @returns {Promise<boolean>} true if employee exists, false otherwise
  */
 async function updateEmployee(employeeId, name, phone) {
     const db = await getDb()
     const empId = String(employeeId || "").trim()
 
+    if (!ObjectId.isValid(empId)) {
+        return false
+    }
+
     const result = await db.collection("employees").updateOne(
-        { employeeId: empId },
+        { _id: new ObjectId(empId) },
         { $set: { name: name, phone: phone } }
     )
 
@@ -146,8 +148,7 @@ module.exports = {
     findEmployee,
     addEmployee,
     getAllShifts,
-    findShift,
-    getAssignmentsByEmployee,
+    getShiftsByEmployee,
     getMaxDailyHours,
     updateEmployee
 }
