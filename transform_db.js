@@ -1,6 +1,7 @@
 // one-time database transformation for Assignment 4
 // step 1: add empty employees array into each shift
 // step 2: copy employee ObjectId values from assignments into shifts.employees
+// step 3: remove old fields and drop assignments collection
 
 const { setServers } = require("node:dns/promises")
 setServers(["1.1.1.1", "8.8.8.8"])
@@ -62,7 +63,28 @@ async function embedEmployeesInShifts(db) {
 }
 
 /**
- * run steps 1 and 2
+ * remove old fields and drop assignments collection
+ * @param {any} db
+ * @returns {Promise<void>}
+ */
+async function cleanupOldData(db) {
+    await db.collection("employees").updateMany(
+        {},
+        { $unset: { employeeId: "" } }
+    )
+
+    await db.collection("shifts").updateMany(
+        {},
+        { $unset: { shiftId: "" } }
+    )
+
+    await db.collection("assignments").drop()
+
+    console.log("Step 3: old fields removed and assignments collection dropped.")
+}
+
+/**
+ * run all transform steps
  * @returns {Promise<void>}
  */
 async function main() {
@@ -72,6 +94,7 @@ async function main() {
 
     await addEmptyEmployeesArray(db)
     await embedEmployeesInShifts(db)
+    await cleanupOldData(db)
 
     await client.close()
 }
