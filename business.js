@@ -55,26 +55,6 @@ function computeShiftDuration(startTime, endTime) {
     return diffMinutes / 60
 }
 
-
-/**
- * make new employee id like E001, E002 ...
- * @param {{employeeId:string}[]} employees
- * @returns {string}
- */
-function getNextEmployeeId(employees) {
-    let maxNumber = 0
-
-    for (let i = 0; i < employees.length; i++) {
-        const id = employees[i].employeeId
-        const number = Number(String(id).substring(1))
-        if (number > maxNumber) {
-            maxNumber = number
-        }
-    }
-
-    return "E" + String(maxNumber + 1).padStart(3, "0")
-}
-
 /**
  * get employees list
  * @returns {Promise<any[]>}
@@ -97,10 +77,7 @@ async function addNewEmployee(name, phone) {
         return { ok: false, message: "Invalid input." }
     }
 
-    const employees = await persistence.getAllEmployees()
-
     const employee = {
-        employeeId: getNextEmployeeId(employees),
         name: n,
         phone: p
     }
@@ -143,16 +120,7 @@ async function getEmployeeSchedule(employeeId) {
         return { ok: false, message: "" }
     }
 
-    const assignments = await persistence.getAssignmentsByEmployee(empId)
-    const rows = []
-
-    for (let i = 0; i < assignments.length; i++) {
-        const shift = await persistence.findShift(assignments[i].shiftId)
-        if (shift) {
-            rows.push(shift)
-        }
-    }
-
+    const rows = await persistence.getShiftsByEmployee(empId)
     sortShifts(rows)
 
     return { ok: true, rows: rows }
