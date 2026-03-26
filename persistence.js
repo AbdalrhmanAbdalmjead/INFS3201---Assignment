@@ -157,6 +157,60 @@ async function findUserByUsername(username) {
     })
 }
 
+/**
+ * create one session in MongoDB
+ * @param {any} session
+ * @returns {Promise<void>}
+ */
+async function addSession(session) {
+    const db = await getDb()
+    await db.collection("sessions").insertOne(session)
+}
+
+/**
+ * find one session by session key
+ * @param {string} sessionKey
+ * @returns {Promise<any|null>}
+ */
+async function findSession(sessionKey) {
+    const db = await getDb()
+    const key = String(sessionKey || "").trim()
+
+    return await db.collection("sessions").findOne({
+        sessionKey: key
+    })
+}
+
+/**
+ * delete one session by session key
+ * @param {string} sessionKey
+ * @returns {Promise<void>}
+ */
+async function deleteSession(sessionKey) {
+    const db = await getDb()
+    const key = String(sessionKey || "").trim()
+
+    await db.collection("sessions").deleteOne({
+        sessionKey: key
+    })
+}
+
+/**
+ * update session expiry time
+ * @param {string} sessionKey
+ * @param {Date} expiry
+ * @returns {Promise<void>}
+ */
+async function updateSessionExpiry(sessionKey, expiry) {
+    const db = await getDb()
+    const key = String(sessionKey || "").trim()
+
+    await db.collection("sessions").updateOne(
+        { sessionKey: key },
+        { $set: { expiry: expiry } }
+    )
+}
+
 module.exports = {
     getAllEmployees,
     findEmployee,
@@ -165,5 +219,9 @@ module.exports = {
     getShiftsByEmployee,
     getMaxDailyHours,
     updateEmployee,
-    findUserByUsername
+    findUserByUsername,
+    addSession,
+    findSession,
+    deleteSession,
+    updateSessionExpiry
 }

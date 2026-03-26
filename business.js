@@ -245,6 +245,61 @@ async function validateCredentials(username, password) {
     return { ok: true, message: "Login successful.", user: user }
 }
 
+/**
+ * start login session for one user
+ * @param {any} user
+ * @returns {Promise<string>}
+ */
+async function startSession(user) {
+    const sessionKey = crypto.randomUUID()
+    const expiry = new Date(Date.now() + 5 * 60 * 1000)
+
+    const session = {
+        sessionKey: sessionKey,
+        username: user.username,
+        expiry: expiry
+    }
+
+    await persistence.addSession(session)
+
+    return sessionKey
+}
+
+/**
+ * get one session if still valid
+ * @param {string} sessionKey
+ * @returns {Promise<any|null>}
+ */
+async function getSession(sessionKey) {
+    const key = String(sessionKey || "").trim()
+
+    if (key === "") {
+        return null
+    }
+
+    const session = await persistence.findSession(key)
+
+    if (!session) {
+        return null
+    }
+
+    if (new Date(session.expiry).getTime() < Date.now()) {
+        await persistence.deleteSession(key)
+        return null
+    }
+
+    return session
+}
+
+/**
+ * delete one session
+ * @param {string} sessionKey
+ * @returns {Promise<void>}
+ */
+async function endSession(sessionKey) {
+    await persistence.deleteSession(sessionKey)
+}
+
 module.exports = {
     getEmployees,
     addNewEmployee,
@@ -254,5 +309,8 @@ module.exports = {
     getEmployeeDetailsPage,
     updateEmployeeDetails,
     validateCredentials,
-    hashPassword
+    hashPassword,
+    startSession,
+    getSession,
+    endSession
 }

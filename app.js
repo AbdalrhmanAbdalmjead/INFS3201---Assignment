@@ -43,7 +43,57 @@ app.post("/login", async (req, res) => {
         return res.redirect("/login?message=" + encodeURIComponent(result.message))
     }
 
+    const sessionKey = await business.startSession(result.user)
+
+    res.setHeader(
+        "Set-Cookie",
+        "sessionKey=" + sessionKey + "; Max-Age=300; HttpOnly; Path=/"
+    )
+
     res.redirect("/")
+})
+
+/**
+ * Show logout page
+ * URL: GET /logout
+ * @param {any} req
+ * @param {any} res
+ * @returns {void}
+ */
+app.get("/logout", (req, res) => {
+    res.render("logout")
+})
+
+/**
+ * Handle logout submit
+ * URL: POST /logout
+ * @param {any} req
+ * @param {any} res
+ * @returns {Promise<void>}
+ */
+app.post("/logout", async (req, res) => {
+    const cookieHeader = req.headers.cookie || ""
+    let sessionKey = ""
+
+    const parts = cookieHeader.split(";")
+
+    for (let i = 0; i < parts.length; i++) {
+        const one = parts[i].trim()
+        if (one.startsWith("sessionKey=")) {
+            sessionKey = one.substring("sessionKey=".length)
+        }
+    }
+
+    if (sessionKey !== "") {
+        await business.endSession(sessionKey)
+    }
+
+    res.setHeader(
+        "Set-Cookie",
+        "sessionKey=; Max-Age=0; HttpOnly; Path=/"
+    )
+
+    res.redirect("/login?message=" + encodeURIComponent("Logged out."))
 })
 
 /**
