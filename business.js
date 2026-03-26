@@ -195,11 +195,55 @@ async function getEmployeeDetailsPage(employeeId) {
     return { ok: true, employee, rows: result.rows }
 }
 
+/**
+ * Check phone format: 4 digits, dash, 4 digits (example: 5555-0101).
+ * @param {string} phone
+ * @returns {boolean}
+ */
+function isValidPhone(phone) {
+    return /^[0-9]{4}-[0-9]{4}$/.test(phone)
+}
+
+/**
+ * Update employee details (server-side validation).
+ * If valid, it calls persistence.updateEmployee() (updateOne).
+ * @param {string} employeeId
+ * @param {string} name
+ * @param {string} phone
+ * @returns {Promise<{ok:boolean, message:string}>}
+ */
+async function updateEmployeeDetails(employeeId, name, phone) {
+    const empId = String(employeeId || "").trim()
+    const n = String(name || "").trim()
+    const p = String(phone || "").trim()
+
+    if (empId === "") {
+        return { ok: false, message: "Invalid employee id." }
+    }
+
+    if (n === "") {
+        return { ok: false, message: "Name must not be empty." }
+    }
+
+    if (!isValidPhone(p)) {
+        return { ok: false, message: "Phone must be like 5555-0101." }
+    }
+
+    const updated = await persistence.updateEmployee(empId, n, p)
+
+    if (!updated) {
+        return { ok: false, message: "Employee not found." }
+    }
+
+    return { ok: true, message: "Saved." }
+}
+
 module.exports = {
     getEmployees,
     addNewEmployee,
     getEmployeeSchedule,
     computeShiftDuration,
     getEmployeeById,
-     getEmployeeDetailsPage
+    getEmployeeDetailsPage,
+    updateEmployeeDetails
 }
