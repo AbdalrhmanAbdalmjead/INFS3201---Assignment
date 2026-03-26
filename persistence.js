@@ -143,6 +143,20 @@ async function updateEmployee(employeeId, name, phone) {
     return result.matchedCount > 0
 }
 
+/**
+ * validate login credentials
+ * @param {string} username
+ * @returns {Promise<any|null>}
+ */
+async function findUserByUsername(username) {
+    const db = await getDb()
+    const uname = String(username || "").trim()
+
+    return await db.collection("users").findOne({
+        username: uname
+    })
+}
+
 module.exports = {
     getAllEmployees,
     findEmployee,
@@ -150,5 +164,6 @@ module.exports = {
     getAllShifts,
     getShiftsByEmployee,
     getMaxDailyHours,
-    updateEmployee
+    updateEmployee,
+    findUserByUsername
 }
