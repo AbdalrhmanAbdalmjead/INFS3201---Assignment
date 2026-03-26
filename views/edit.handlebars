@@ -6,7 +6,7 @@
 <p style="color:red;">{{error}}</p>
 {{/if}}
 
-<form method="POST" action="/employee/edit/{{employee.employeeId}}">
+<form method="POST" action="/edit/{{employee._id}}">
     <div>
         <label>Name:</label>
         <input type="text" name="name" value="{{employee.name}}">
@@ -23,4 +23,4 @@
 </form>
 
 <br>
-<a href="/employee/{{employee.employeeId}}">Back</a>
+<a href="/employee/{{employee._id}}">Back</a>
