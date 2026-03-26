@@ -1,5 +1,6 @@
 // one-time database transformation for Assignment 4
-// step 1 only: add empty employees array into each shift
+// step 1: add empty employees array into each shift
+// step 2: copy employee ObjectId values from assignments into shifts.employees
 
 const { setServers } = require("node:dns/promises")
 setServers(["1.1.1.1", "8.8.8.8"])
@@ -11,8 +12,8 @@ const MONGODB_URI = process.env.MONGODB_URI
 const DB_NAME = process.env.DB_NAME || "infs3201_winter2026"
 
 /**
- * connect to MongoDB and return the database object
- * @returns {Promise<any>}
+ * connect to MongoDB and return database and client
+ * @returns {Promise<{db:any,client:any}>}
  */
 async function getDb() {
     const client = new MongoClient(MONGODB_URI)
@@ -22,29 +23,57 @@ async function getDb() {
 
 /**
  * add an empty employees array to every shift
+ * @param {any} db
  * @returns {Promise<void>}
  */
-async function addEmptyEmployeesArray() {
-    const conn = await getDb()
-    const db = conn.db
-    const client = conn.client
-
+async function addEmptyEmployeesArray(db) {
     await db.collection("shifts").updateMany(
         {},
         { $set: { employees: [] } }
     )
 
-    console.log("Step 1 done: empty employees array added to all shifts.")
-
-    await client.close()
+    console.log("Step 1: empty employees array added to all shifts.")
 }
 
 /**
- * run step 1 only
+ * go through assignments and embed employee ObjectId into shift.employees
+ * @param {any} db
+ * @returns {Promise<void>}
+ */
+async function embedEmployeesInShifts(db) {
+    const assignments = await db.collection("assignments").find({}).toArray()
+
+    for (let i = 0; i < assignments.length; i++) {
+        const oneAssignment = assignments[i]
+
+        const employee = await db.collection("employees").findOne({
+            employeeId: oneAssignment.employeeId
+        })
+
+        if (employee) {
+            await db.collection("shifts").updateOne(
+                { shiftId: oneAssignment.shiftId },
+                { $addToSet: { employees: employee._id } }
+            )
+        }
+    }
+
+    console.log("Step 2: employee ObjectIds embedded into shifts.")
+}
+
+/**
+ * run steps 1 and 2
  * @returns {Promise<void>}
  */
 async function main() {
-    await addEmptyEmployeesArray()
+    const conn = await getDb()
+    const db = conn.db
+    const client = conn.client
+
+    await addEmptyEmployeesArray(db)
+    await embedEmployeesInShifts(db)
+
+    await client.close()
 }
 
 main()
