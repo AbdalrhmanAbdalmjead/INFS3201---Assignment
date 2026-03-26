@@ -15,6 +15,38 @@ app.set("view engine", "handlebars")
 app.set("views", "./views")
 
 /**
+ * Show login page
+ * URL: GET /login
+ * @param {any} req
+ * @param {any} res
+ * @returns {void}
+ */
+app.get("/login", (req, res) => {
+    const message = req.query.message || ""
+    res.render("login", { message: message })
+})
+
+/**
+ * Handle login submit
+ * URL: POST /login
+ * @param {any} req
+ * @param {any} res
+ * @returns {Promise<void>}
+ */
+app.post("/login", async (req, res) => {
+    const username = req.body.username
+    const password = req.body.password
+
+    const result = await business.validateCredentials(username, password)
+
+    if (!result.ok) {
+        return res.redirect("/login?message=" + encodeURIComponent(result.message))
+    }
+
+    res.redirect("/")
+})
+
+/**
  * Landing page: list employee names as links
  * URL: GET /
  * @param {any} req
