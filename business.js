@@ -3,6 +3,7 @@
 // no prompt and no console.log here
 
 const persistence = require("./persistence")
+const crypto = require("crypto")
 
 /**
  * compute how many hours between startTime and endTime
@@ -206,6 +207,44 @@ async function updateEmployeeDetails(employeeId, name, phone) {
     return { ok: true, message: "Saved." }
 }
 
+/**
+ * hash password using sha256
+ * @param {string} password
+ * @returns {string}
+ */
+function hashPassword(password) {
+    return crypto.createHash("sha256").update(String(password || "")).digest("hex")
+}
+
+/**
+ * validate username and password for login
+ * @param {string} username
+ * @param {string} password
+ * @returns {Promise<{ok:boolean,message:string,user?:any}>}
+ */
+async function validateCredentials(username, password) {
+    const uname = String(username || "").trim()
+    const pword = String(password || "").trim()
+
+    if (uname === "" || pword === "") {
+        return { ok: false, message: "Invalid username or password." }
+    }
+
+    const user = await persistence.findUserByUsername(uname)
+
+    if (!user) {
+        return { ok: false, message: "Invalid username or password." }
+    }
+
+    const hashed = hashPassword(pword)
+
+    if (hashed !== user.password) {
+        return { ok: false, message: "Invalid username or password." }
+    }
+
+    return { ok: true, message: "Login successful.", user: user }
+}
+
 module.exports = {
     getEmployees,
     addNewEmployee,
@@ -213,5 +252,7 @@ module.exports = {
     computeShiftDuration,
     getEmployeeById,
     getEmployeeDetailsPage,
-    updateEmployeeDetails
+    updateEmployeeDetails,
+    validateCredentials,
+    hashPassword
 }
