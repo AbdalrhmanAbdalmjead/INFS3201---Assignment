@@ -211,6 +211,11 @@ async function updateSessionExpiry(sessionKey, expiry) {
     )
 }
 
+async function insertSecurityLog(log) {
+    const db = await getDb()
+    await db.collection("security_log").insertOne(log)
+}
+
 module.exports = {
     getAllEmployees,
     findEmployee,
@@ -223,5 +228,6 @@ module.exports = {
     addSession,
     findSession,
     deleteSession,
-    updateSessionExpiry
+    updateSessionExpiry,
+    insertSecurityLog
 }

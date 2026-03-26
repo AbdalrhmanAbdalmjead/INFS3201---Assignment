@@ -300,6 +300,25 @@ async function endSession(sessionKey) {
     await persistence.deleteSession(sessionKey)
 }
 
+async function logSecurityAccess(username, url, method) {
+    await persistence.insertSecurityLog({
+        timestamp: new Date(),
+        username: username || null,
+        url: url,
+        method: method
+    })
+}
+
+/**
+ * update session expiry
+ * @param {string} sessionKey
+ * @param {Date} expiry
+ * @returns {Promise<void>}
+ */
+async function updateSession(sessionKey, expiry) {
+    await persistence.updateSessionExpiry(sessionKey, expiry)
+}
+
 module.exports = {
     getEmployees,
     addNewEmployee,
@@ -312,5 +331,7 @@ module.exports = {
     hashPassword,
     startSession,
     getSession,
-    endSession
+    endSession,
+    logSecurityAccess,
+    updateSession
 }

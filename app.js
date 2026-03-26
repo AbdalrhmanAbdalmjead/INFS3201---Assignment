@@ -9,13 +9,34 @@ const cookieParser = require("cookie-parser")
 const app = express()
 
 app.use(cookieParser())
+
+app.use(async (req, res, next) => {
+    let username = null
+
+    const sessionKey = req.cookies?.sessionKey
+
+    if (sessionKey) {
+        const session = await business.getSession(sessionKey)
+        if (session && session.username) {
+            username = session.username
+        }
+    }
+
+    await business.logSecurityAccess(
+        username,
+        req.originalUrl,
+        req.method
+    )
+
+    next()
+})
+
 app.use(express.urlencoded({ extended: false }))
 app.use(express.static("public"))
 
 app.engine("handlebars", engine({ defaultLayout: false }))
 app.set("view engine", "handlebars")
 app.set("views", "./views")
-
 
 async function checkAuth(req, res, next) {
     const sessionKey = req.cookies?.sessionKey
@@ -34,14 +55,8 @@ async function checkAuth(req, res, next) {
         return res.redirect("/login?message=Session expired")
     }
 
-    // extend expiry by 5 minutes
-    await business.updateSession({
-        key: sessionKey,
-        expiry: new Date(Date.now() + 1000 * 60 * 5),
-        data: session.data
-    })
+    await business.updateSession(sessionKey, new Date(Date.now() + 1000 * 60 * 5))
 
-    // extend cookie
     res.setHeader(
         "Set-Cookie",
         "sessionKey=" + sessionKey + "; Max-Age=300; HttpOnly; Path=/"
