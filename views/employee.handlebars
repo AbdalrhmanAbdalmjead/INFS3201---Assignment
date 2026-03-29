@@ -10,7 +10,7 @@
     </p>
 {{/if}}
 
-<p><a href="/edit/{{employee._id}}">Edit Details</a></p>
+<a href="/edit/{{employee._id}}" class="btn">Edit Details</a>
 
 <h2>Shifts</h2>
 
@@ -35,3 +35,6 @@
         </tr>
     {{/each}}
 </table>
+
+<a href="/" class="btn">Back to List</a>
+<a href="/logout" class="btn">Logout</a>
