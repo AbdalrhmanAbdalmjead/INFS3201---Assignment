@@ -236,7 +236,19 @@ app.post("/edit/:id", async (req, res) => {
     const result = await business.updateEmployeeDetails(employeeId, name, phone)
 
     if (!result.ok) {
-        return res.send(result.message)
+        const employee = await business.getEmployeeById(employeeId)
+
+        if (!employee) {
+            return res.send("Employee not found.")
+        }
+
+        employee.name = name
+        employee.phone = phone
+
+        return res.render("edit", {
+            employee: employee,
+            error: result.message
+        })
     }
 
     res.redirect("/")
