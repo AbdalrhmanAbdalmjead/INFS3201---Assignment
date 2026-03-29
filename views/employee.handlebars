@@ -4,6 +4,12 @@
 <p>Name: {{employee.name}}</p>
 <p>Phone: {{employee.phone}}</p>
 
+{{#if employee.photo}}
+    <p>
+        <img src="/photos/{{employee.photo}}" alt="Employee Photo" width="150">
+    </p>
+{{/if}}
+
 <p><a href="/edit/{{employee._id}}">Edit Details</a></p>
 
 <h2>Shifts</h2>
