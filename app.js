@@ -38,6 +38,13 @@ app.engine("handlebars", engine({ defaultLayout: false }))
 app.set("view engine", "handlebars")
 app.set("views", "./views")
 
+/**
+ * middleware to check if user is authenticated
+ * @param {any} req
+ * @param {any} res
+ * @param {any} next
+ * @returns {Promise<void>}
+ */
 async function checkAuth(req, res, next) {
     const sessionKey = req.cookies?.sessionKey
 

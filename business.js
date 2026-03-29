@@ -300,6 +300,13 @@ async function endSession(sessionKey) {
     await persistence.deleteSession(sessionKey)
 }
 
+/**
+ * log one request into security_log collection
+ * @param {string|null} username
+ * @param {string} url
+ * @param {string} method
+ * @returns {Promise<void>}
+ */
 async function logSecurityAccess(username, url, method) {
     await persistence.insertSecurityLog({
         timestamp: new Date(),

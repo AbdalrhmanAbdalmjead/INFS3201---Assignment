@@ -211,6 +211,11 @@ async function updateSessionExpiry(sessionKey, expiry) {
     )
 }
 
+/**
+ * insert one record into security_log collection
+ * @param {any} log
+ * @returns {Promise<void>}
+ */
 async function insertSecurityLog(log) {
     const db = await getDb()
     await db.collection("security_log").insertOne(log)
