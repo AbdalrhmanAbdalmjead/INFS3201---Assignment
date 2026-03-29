@@ -74,8 +74,12 @@ async function addNewEmployee(name, phone) {
     const n = String(name || "").trim()
     const p = String(phone || "").trim()
 
-    if (n === "" || p === "") {
-        return { ok: false, message: "Invalid input." }
+    if (n === "") {
+        return { ok: false, message: "Name must not be empty." }
+    }
+
+    if (!isValidPhone(p)) {
+        return { ok: false, message: "Phone must be like 5555-0101." }
     }
 
     const employee = {
