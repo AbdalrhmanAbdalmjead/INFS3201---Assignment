@@ -386,20 +386,50 @@ app.post("/add", async (req, res) => {
  * URL: POST /upload-document/:id
  * @param {any} req
  * @param {any} res
- * @returns {void}
+ * @returns {Promise<void>}
  */
-app.post("/upload-document/:id", upload.single("document"), (req, res) => {
+app.post("/upload-document/:id", upload.single("document"), async (req, res) => {
     if (!req.file) {
         return res.send("Upload failed")
     }
 
-    res.send("File uploaded successfully: " + req.file.filename)
+    const employeeId = String(req.params.id || "").trim()
+
+    const employee = await business.getEmployeeById(employeeId)
+
+    if (!employee) {
+        return res.send("Employee not found")
+    }
+
+    let documents = employee.documents
+
+    if (!documents) {
+        documents = []
+    }
+
+    if (documents.length >= 5) {
+        return res.send("Max 5 documents allowed")
+    }
+
+    documents.push({
+        originalName: req.file.originalname,
+        storedName: req.file.filename,
+        size: req.file.size
+    })
+
+    const saved = await business.updateEmployeeDocuments(employeeId, documents)
+
+    if (!saved) {
+        return res.send("Failed to save document info")
+    }
+
+    res.redirect("/employee/" + employeeId)
 })
 
 /**
  * Start server on port 8000
  * @returns {void}
  */
-app.listen(8000, () => {
+app.listen(3000, () => {
     console.log("Server running on http://localhost:8000")
 })

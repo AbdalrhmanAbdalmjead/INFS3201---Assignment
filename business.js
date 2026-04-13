@@ -368,6 +368,22 @@ async function getUserByUsername(username) {
     return await persistence.findUserByUsername(uname)
 }
 
+/**
+ * update employee documents
+ * @param {string} employeeId
+ * @param {any[]} documents
+ * @returns {Promise<boolean>}
+ */
+async function updateEmployeeDocuments(employeeId, documents) {
+    const empId = String(employeeId || "").trim()
+
+    if (empId === "") {
+        return false
+    }
+
+    return await persistence.updateEmployeeDocuments(empId, documents)
+}
+
 module.exports = {
     getEmployees,
     addNewEmployee,
@@ -383,5 +399,6 @@ module.exports = {
     endSession,
     logSecurityAccess,
     updateSession,
-    getUserByUsername
+    getUserByUsername,
+    updateEmployeeDocuments
 }

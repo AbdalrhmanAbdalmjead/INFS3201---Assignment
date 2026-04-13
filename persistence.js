@@ -266,6 +266,28 @@ async function lockUserAccount(username) {
     )
 }
 
+/**
+ * update employee documents array
+ * @param {string} employeeId
+ * @param {any[]} documents
+ * @returns {Promise<boolean>}
+ */
+async function updateEmployeeDocuments(employeeId, documents) {
+    const db = await getDb()
+    const empId = String(employeeId || "").trim()
+
+    if (!ObjectId.isValid(empId)) {
+        return false
+    }
+
+    const result = await db.collection("employees").updateOne(
+        { _id: new ObjectId(empId) },
+        { $set: { documents: documents } }
+    )
+
+    return result.matchedCount > 0
+}
+
 module.exports = {
     getAllEmployees,
     findEmployee,
@@ -282,5 +304,6 @@ module.exports = {
     insertSecurityLog,
     increaseFailedLoginAttempts,
     resetFailedLoginAttempts,
-    lockUserAccount
+    lockUserAccount,
+    updateEmployeeDocuments
 }
