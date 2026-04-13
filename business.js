@@ -330,6 +330,21 @@ async function updateSession(sessionKey, expiry) {
     await persistence.updateSessionExpiry(sessionKey, expiry)
 }
 
+/**
+ * get one user by username
+ * @param {string} username
+ * @returns {Promise<any|null>}
+ */
+async function getUserByUsername(username) {
+    const uname = String(username || "").trim()
+
+    if (uname === "") {
+        return null
+    }
+
+    return await persistence.findUserByUsername(uname)
+}
+
 module.exports = {
     getEmployees,
     addNewEmployee,
@@ -344,5 +359,6 @@ module.exports = {
     getSession,
     endSession,
     logSecurityAccess,
-    updateSession
+    updateSession,
+    getUserByUsername
 }

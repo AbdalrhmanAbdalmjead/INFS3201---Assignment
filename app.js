@@ -143,6 +143,51 @@ app.get("/2fa", (req, res) => {
 })
 
 /**
+ * Handle 2FA submit
+ * URL: POST /2fa
+ * @param {any} req
+ * @param {any} res
+ * @returns {Promise<void>}
+ */
+app.post("/2fa", async (req, res) => {
+    const username = String(req.body.username || "").trim()
+    const code = String(req.body.code || "").trim()
+
+    const saved = twoFactorStore[username]
+
+    if (!saved) {
+        return res.redirect("/login?message=" + encodeURIComponent("2FA session not found. Please login again."))
+    }
+
+    if (new Date(saved.expiry).getTime() < Date.now()) {
+        delete twoFactorStore[username]
+        return res.redirect("/login?message=" + encodeURIComponent("2FA code expired. Please login again."))
+    }
+
+    if (saved.code !== code) {
+        return res.redirect("/2fa?user=" + encodeURIComponent(username) + "&message=" + encodeURIComponent("Invalid 2FA code."))
+    }
+
+    const user = await business.getUserByUsername(username)
+
+    if (!user) {
+        delete twoFactorStore[username]
+        return res.redirect("/login?message=" + encodeURIComponent("User not found."))
+    }
+
+    const sessionKey = await business.startSession(user)
+
+    delete twoFactorStore[username]
+
+    res.setHeader(
+        "Set-Cookie",
+        "sessionKey=" + sessionKey + "; Max-Age=300; HttpOnly; Path=/"
+    )
+
+    res.redirect("/")
+})
+
+/**
  * Show logout page
  * URL: GET /logout
  * @param {any} req
