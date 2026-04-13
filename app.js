@@ -5,6 +5,7 @@ const express = require("express")
 const { engine } = require("express-handlebars")
 const business = require("./business")
 const cookieParser = require("cookie-parser")
+const twoFactorStore = {}
 
 const app = express()
 
@@ -109,14 +110,19 @@ app.post("/login", async (req, res) => {
         return res.redirect("/login?message=" + encodeURIComponent(result.message))
     }
 
-    const sessionKey = await business.startSession(result.user)
+    const user = result.user
 
-    res.setHeader(
-        "Set-Cookie",
-        "sessionKey=" + sessionKey + "; Max-Age=300; HttpOnly; Path=/"
-    )
+    const code = Math.floor(100000 + Math.random() * 900000).toString()
 
-    res.redirect("/")
+    twoFactorStore[user.username] = {
+        code: code,
+        expiry: new Date(Date.now() + 1000 * 60 * 3)
+    }
+
+    const emailSystem = require("./emailSystem")
+    await emailSystem.sendTwoFactorCodeEmail(user.username, code)
+
+    return res.redirect("/2fa?user=" + encodeURIComponent(user.username))
 })
 
 /**
