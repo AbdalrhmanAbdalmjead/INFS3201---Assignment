@@ -384,6 +384,23 @@ async function updateEmployeeDocuments(employeeId, documents) {
     return await persistence.updateEmployeeDocuments(empId, documents)
 }
 
+/**
+ * get one employee document metadata
+ * @param {string} employeeId
+ * @param {string} storedName
+ * @returns {Promise<any|null>}
+ */
+async function getEmployeeDocument(employeeId, storedName) {
+    const empId = String(employeeId || "").trim()
+    const fileName = String(storedName || "").trim()
+
+    if (empId === "" || fileName === "") {
+        return null
+    }
+
+    return await persistence.findEmployeeDocument(empId, fileName)
+}
+
 module.exports = {
     getEmployees,
     addNewEmployee,
@@ -400,5 +417,6 @@ module.exports = {
     logSecurityAccess,
     updateSession,
     getUserByUsername,
-    updateEmployeeDocuments
+    updateEmployeeDocuments, 
+    getEmployeeDocument
 }

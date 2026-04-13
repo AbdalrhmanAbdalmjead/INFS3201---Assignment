@@ -19,6 +19,20 @@
 
 <br>
 
+<h2>Documents</h2>
+
+{{#if employee.documents.length}}
+    <ul>
+        {{#each employee.documents}}
+            <li>
+                <a href="/documents/{{../employee._id}}/{{this.storedName}}">{{this.originalName}}</a>
+            </li>
+        {{/each}}
+    </ul>
+{{else}}
+    <p>No documents uploaded.</p>
+{{/if}}
+
 <a href="/edit/{{employee._id}}" class="btn">Edit Details</a>
 
 <h2>Shifts</h2>

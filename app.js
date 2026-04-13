@@ -8,6 +8,7 @@ const cookieParser = require("cookie-parser")
 const twoFactorStore = {}
 const multer = require("multer")
 const path = require("path")
+const fs = require("fs")
 
 const app = express()
 
@@ -424,6 +425,32 @@ app.post("/upload-document/:id", upload.single("document"), async (req, res) => 
     }
 
     res.redirect("/employee/" + employeeId)
+})
+
+/**
+ * View/download employee document
+ * URL: GET /documents/:id/:file
+ * @param {any} req
+ * @param {any} res
+ * @returns {Promise<void>}
+ */
+app.get("/documents/:id/:file", async (req, res) => {
+    const employeeId = String(req.params.id || "").trim()
+    const storedName = String(req.params.file || "").trim()
+
+    const document = await business.getEmployeeDocument(employeeId, storedName)
+
+    if (!document) {
+        return res.send("Document not found")
+    }
+
+    const filePath = path.join(__dirname, "employee_docs", storedName)
+
+    if (!fs.existsSync(filePath)) {
+        return res.send("File not found on server")
+    }
+
+    return res.download(filePath, document.originalName)
 })
 
 /**

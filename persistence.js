@@ -288,6 +288,38 @@ async function updateEmployeeDocuments(employeeId, documents) {
     return result.matchedCount > 0
 }
 
+/**
+ * find one employee document record by stored file name
+ * @param {string} employeeId
+ * @param {string} storedName
+ * @returns {Promise<any|null>}
+ */
+async function findEmployeeDocument(employeeId, storedName) {
+    const db = await getDb()
+    const empId = String(employeeId || "").trim()
+    const fileName = String(storedName || "").trim()
+
+    if (!ObjectId.isValid(empId)) {
+        return null
+    }
+
+    const employee = await db.collection("employees").findOne({
+        _id: new ObjectId(empId)
+    })
+
+    if (!employee || !employee.documents) {
+        return null
+    }
+
+    for (let i = 0; i < employee.documents.length; i++) {
+        if (employee.documents[i].storedName === fileName) {
+            return employee.documents[i]
+        }
+    }
+
+    return null
+}
+
 module.exports = {
     getAllEmployees,
     findEmployee,
@@ -305,5 +337,6 @@ module.exports = {
     increaseFailedLoginAttempts,
     resetFailedLoginAttempts,
     lockUserAccount,
-    updateEmployeeDocuments
+    updateEmployeeDocuments,
+    findEmployeeDocument
 }
