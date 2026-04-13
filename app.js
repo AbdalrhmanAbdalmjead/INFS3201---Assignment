@@ -6,8 +6,36 @@ const { engine } = require("express-handlebars")
 const business = require("./business")
 const cookieParser = require("cookie-parser")
 const twoFactorStore = {}
+const multer = require("multer")
+const path = require("path")
 
 const app = express()
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "employee_docs")
+    },
+    filename: function (req, file, cb) {
+        const uniqueName = Date.now() + "_" + file.originalname
+        cb(null, uniqueName)
+    }
+})
+
+function fileFilter(req, file, cb) {
+    const ext = path.extname(file.originalname).toLowerCase()
+
+    if (ext !== ".pdf") {
+        return cb(new Error("Only PDF files are allowed"), false)
+    }
+
+    cb(null, true)
+}
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter: fileFilter
+})
 
 app.use(cookieParser())
 
@@ -351,6 +379,21 @@ app.post("/add", async (req, res) => {
     }
 
     res.redirect("/")
+})
+
+/**
+ * Upload employee document
+ * URL: POST /upload-document/:id
+ * @param {any} req
+ * @param {any} res
+ * @returns {void}
+ */
+app.post("/upload-document/:id", upload.single("document"), (req, res) => {
+    if (!req.file) {
+        return res.send("Upload failed")
+    }
+
+    res.send("File uploaded successfully: " + req.file.filename)
 })
 
 /**
