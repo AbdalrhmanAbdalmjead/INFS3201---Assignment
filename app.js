@@ -74,7 +74,7 @@ async function checkAuth(req, res, next) {
 }
 
 app.use(async (req, res, next) => {
-    if (req.path === "/login" || req.path === "/logout") {
+    if (req.path === "/login" || req.path === "/logout" || req.path === "/2fa") {
         return next()
     }
 
@@ -123,6 +123,23 @@ app.post("/login", async (req, res) => {
     await emailSystem.sendTwoFactorCodeEmail(user.username, code)
 
     return res.redirect("/2fa?user=" + encodeURIComponent(user.username))
+})
+
+/**
+ * Show 2FA page
+ * URL: GET /2fa
+ * @param {any} req
+ * @param {any} res
+ * @returns {void}
+ */
+app.get("/2fa", (req, res) => {
+    const username = req.query.user || ""
+    const message = req.query.message || ""
+
+    res.render("twofa", {
+        username: username,
+        message: message
+    })
 })
 
 /**
