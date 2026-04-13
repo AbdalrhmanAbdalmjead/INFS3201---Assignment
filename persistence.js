@@ -251,6 +251,21 @@ async function resetFailedLoginAttempts(username) {
     )
 }
 
+/**
+ * lock one user account
+ * @param {string} username
+ * @returns {Promise<void>}
+ */
+async function lockUserAccount(username) {
+    const db = await getDb()
+    const uname = String(username || "").trim()
+
+    await db.collection("users").updateOne(
+        { username: uname },
+        { $set: { locked: true } }
+    )
+}
+
 module.exports = {
     getAllEmployees,
     findEmployee,
@@ -266,5 +281,6 @@ module.exports = {
     updateSessionExpiry,
     insertSecurityLog,
     increaseFailedLoginAttempts,
-    resetFailedLoginAttempts
+    resetFailedLoginAttempts,
+    lockUserAccount
 }

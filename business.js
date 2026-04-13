@@ -4,6 +4,7 @@
 
 const persistence = require("./persistence")
 const crypto = require("crypto")
+const emailSystem = require("./emailSystem")
 
 /**
  * compute how many hours between startTime and endTime
@@ -248,6 +249,21 @@ async function validateCredentials(username, password) {
 
     if (hashed !== user.password) {
         await persistence.increaseFailedLoginAttempts(uname)
+
+        const updatedUser = await persistence.findUserByUsername(uname)
+
+        if (updatedUser) {
+            if (updatedUser.failedLoginAttempts === 3) {
+                await emailSystem.sendSuspiciousActivityEmail(updatedUser.email)
+            }
+
+            if (updatedUser.failedLoginAttempts >= 10) {
+                await persistence.lockUserAccount(uname)
+                await emailSystem.sendAccountLockedEmail(updatedUser.email)
+                return { ok: false, message: "Account is locked." }
+            }
+        }
+
         return { ok: false, message: "Invalid username or password." }
     }
 
