@@ -2,41 +2,49 @@
     {
         "employeeId": "E001",
         "name": "Alex Morgan",
-        "phone": "5555-0101"
+        "phone": "5555-0101",
+        "documents": []
     },
     {
         "employeeId": "E002",
         "name": "Samir Khan",
-        "phone": "5555-0102"
+        "phone": "5555-0102",
+        "documents": []
     },
     {
         "employeeId": "E003",
         "name": "Lina Perez",
-        "phone": "5555-0103"
+        "phone": "5555-0103",
+        "documents": []
     },
     {
         "employeeId": "E004",
         "name": "Daniel Wu",
-        "phone": "5555-0104"
+        "phone": "5555-0104",
+        "documents": []
     },
     {
         "employeeId": "E005",
         "name": "Fatima Noor",
-        "phone": "5555-0105"
+        "phone": "5555-0105",
+        "documents": []
     },
     {
+        "employeeId": "E006",
         "name": "Mohammed",
         "phone": "1234-5678",
-        "employeeId": "E006"
+        "documents": []
     },
     {
         "employeeId": "E007",
         "name": "Ahmed Ali",
-        "phone": "4444-5555"
+        "phone": "4444-5555",
+        "documents": []
     },
     {
         "employeeId": "E008",
         "name": "Khaled Ali",
-        "phone": "5555-6666"
+        "phone": "5555-6666",
+        "documents": []
     }
 ]
