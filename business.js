@@ -240,11 +240,18 @@ async function validateCredentials(username, password) {
         return { ok: false, message: "Invalid username or password." }
     }
 
+    if (user.locked === true) {
+        return { ok: false, message: "Account is locked." }
+    }
+
     const hashed = hashPassword(pword)
 
     if (hashed !== user.password) {
+        await persistence.increaseFailedLoginAttempts(uname)
         return { ok: false, message: "Invalid username or password." }
     }
+
+    await persistence.resetFailedLoginAttempts(uname)
 
     return { ok: true, message: "Login successful.", user: user }
 }

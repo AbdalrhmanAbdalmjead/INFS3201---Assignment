@@ -221,6 +221,36 @@ async function insertSecurityLog(log) {
     await db.collection("security_log").insertOne(log)
 }
 
+/**
+ * increase failed login attempts by 1 for one user
+ * @param {string} username
+ * @returns {Promise<void>}
+ */
+async function increaseFailedLoginAttempts(username) {
+    const db = await getDb()
+    const uname = String(username || "").trim()
+
+    await db.collection("users").updateOne(
+        { username: uname },
+        { $inc: { failedLoginAttempts: 1 } }
+    )
+}
+
+/**
+ * reset failed login attempts to 0 for one user
+ * @param {string} username
+ * @returns {Promise<void>}
+ */
+async function resetFailedLoginAttempts(username) {
+    const db = await getDb()
+    const uname = String(username || "").trim()
+
+    await db.collection("users").updateOne(
+        { username: uname },
+        { $set: { failedLoginAttempts: 0 } }
+    )
+}
+
 module.exports = {
     getAllEmployees,
     findEmployee,
@@ -234,5 +264,7 @@ module.exports = {
     findSession,
     deleteSession,
     updateSessionExpiry,
-    insertSecurityLog
+    insertSecurityLog,
+    increaseFailedLoginAttempts,
+    resetFailedLoginAttempts
 }
