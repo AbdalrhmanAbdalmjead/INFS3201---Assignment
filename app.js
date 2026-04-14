@@ -170,7 +170,7 @@ app.post("/login", async (req, res) => {
     if (!user.email) {
         return res.redirect("/login?message=" + encodeURIComponent("User email not found"))
     }
-    
+
     await emailSystem.sendTwoFactorCodeEmail(user.email, code)
 
     return res.redirect("/2fa?user=" + encodeURIComponent(user.username))
@@ -304,6 +304,7 @@ app.get("/employee/:id", async (req, res) => {
     const employeeId = String(req.params.id || "").trim()
     const result = await business.getEmployeeDetailsPage(employeeId)
     const message = req.query.message || ""
+    const error = req.query.error || ""
 
     if (!result.ok) {
         return res.send(result.message)
@@ -320,7 +321,8 @@ app.get("/employee/:id", async (req, res) => {
     res.render("employee", {
     employee: result.employee,
     rows: rows,
-    message: message
+    message: message,
+    error: error
     })
 })
 
@@ -427,14 +429,14 @@ app.post("/upload-document/:id", (req, res) => {
             }
 
             return res.redirect(
-                "/employee/" + employeeId + "?message=" +
+                "/employee/" + employeeId + "?error=" +
                 encodeURIComponent(message)
             )
         }
 
         if (!req.file) {
             return res.redirect(
-                "/employee/" + employeeId + "?message=" +
+                "/employee/" + employeeId + "?error=" +
                 encodeURIComponent("Please choose a PDF file")
             )
         }
@@ -455,7 +457,7 @@ app.post("/upload-document/:id", (req, res) => {
         if (documents.length >= 5) {
             deleteUploadedFile(req.file.path)
             return res.redirect(
-                "/employee/" + employeeId + "?message=" +
+                "/employee/" + employeeId + "?error=" +
                 encodeURIComponent("Max 5 documents allowed")
             )
         }

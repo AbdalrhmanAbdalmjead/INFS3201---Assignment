@@ -8,6 +8,10 @@
     <p style="color:green;">{{message}}</p>
 {{/if}}
 
+{{#if error}}
+    <p style="color:red;">{{error}}</p>
+{{/if}}
+
 {{#if employee.photo}}
     <p>
         <img src="/photos/{{employee.photo}}" alt="Employee Photo" width="150">
