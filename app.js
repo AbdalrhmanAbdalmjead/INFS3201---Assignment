@@ -166,7 +166,12 @@ app.post("/login", async (req, res) => {
     }
 
     const emailSystem = require("./emailSystem")
-    await emailSystem.sendTwoFactorCodeEmail(user.username, code)
+
+    if (!user.email) {
+        return res.redirect("/login?message=" + encodeURIComponent("User email not found"))
+    }
+    
+    await emailSystem.sendTwoFactorCodeEmail(user.email, code)
 
     return res.redirect("/2fa?user=" + encodeURIComponent(user.username))
 })
