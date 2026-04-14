@@ -391,42 +391,71 @@ app.post("/add", async (req, res) => {
  * @param {any} res
  * @returns {Promise<void>}
  */
-app.post("/upload-document/:id", upload.single("document"), async (req, res) => {
-    if (!req.file) {
-        return res.send("Upload failed")
-    }
+app.post("/upload-document/:id", (req, res) => {
+    upload.single("document")(req, res, async function (err) {
+        const employeeId = String(req.params.id || "").trim()
 
-    const employeeId = String(req.params.id || "").trim()
+        if (err) {
+            let message = "Upload failed"
 
-    const employee = await business.getEmployeeById(employeeId)
+            if (err.code === "LIMIT_FILE_SIZE") {
+                message = "File must not be more than 2MB"
+            } else {
+                message = err.message
+            }
 
-    if (!employee) {
-        return res.send("Employee not found")
-    }
+            return res.redirect(
+                "/employee/" + employeeId + "?message=" +
+                encodeURIComponent(message)
+            )
+        }
 
-    let documents = employee.documents
+        if (!req.file) {
+            return res.redirect(
+                "/employee/" + employeeId + "?message=" +
+                encodeURIComponent("Please choose a PDF file")
+            )
+        }
 
-    if (!documents) {
-        documents = []
-    }
+        const employee = await business.getEmployeeById(employeeId)
 
-    if (documents.length >= 5) {
-        return res.send("Max 5 documents allowed")
-    }
+        if (!employee) {
+            deleteUploadedFile(req.file.path)
+            return res.send("Employee not found")
+        }
 
-    documents.push({
-        originalName: req.file.originalname,
-        storedName: req.file.filename,
-        size: req.file.size
+        let documents = employee.documents
+
+        if (!documents) {
+            documents = []
+        }
+
+        if (documents.length >= 5) {
+            deleteUploadedFile(req.file.path)
+            return res.redirect(
+                "/employee/" + employeeId + "?message=" +
+                encodeURIComponent("Max 5 documents allowed")
+            )
+        }
+
+        documents.push({
+            originalName: req.file.originalname,
+            storedName: req.file.filename,
+            size: req.file.size
+        })
+
+        const saved = await business.updateEmployeeDocuments(employeeId, documents)
+
+        if (!saved) {
+            deleteUploadedFile(req.file.path)
+            return res.send("Failed to save document info")
+        }
+
+        res.redirect(
+            "/employee/" + employeeId + "?message=" +
+            encodeURIComponent("Document uploaded successfully")
+        )
     })
-
-    const saved = await business.updateEmployeeDocuments(employeeId, documents)
-
-    if (!saved) {
-        return res.send("Failed to save document info")
-    }
-
-    res.redirect("/employee/" + employeeId + "?message=Document uploaded successfully")
 })
 
 /**
