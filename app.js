@@ -22,6 +22,23 @@ const storage = multer.diskStorage({
     }
 })
 
+/**
+ * delete uploaded file from disk if it exists
+ * @param {string} filePath
+ * @returns {void}
+ */
+function deleteUploadedFile(filePath) {
+    const onePath = String(filePath || "").trim()
+
+    if (onePath === "") {
+        return
+    }
+
+    if (fs.existsSync(onePath)) {
+        fs.unlinkSync(onePath)
+    }
+}
+
 function fileFilter(req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase()
 
