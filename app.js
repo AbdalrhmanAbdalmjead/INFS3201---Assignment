@@ -460,5 +460,5 @@ app.get("/documents/:id/:file", async (req, res) => {
  * @returns {void}
  */
 app.listen(3000, () => {
-    console.log("Server running on http://localhost:8000")
+    console.log("Server running on http://localhost:3000")
 })
