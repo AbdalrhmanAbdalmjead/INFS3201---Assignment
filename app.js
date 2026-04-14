@@ -281,6 +281,7 @@ app.get("/", async (req, res) => {
 app.get("/employee/:id", async (req, res) => {
     const employeeId = String(req.params.id || "").trim()
     const result = await business.getEmployeeDetailsPage(employeeId)
+    const message = req.query.message || ""
 
     if (!result.ok) {
         return res.send(result.message)
@@ -295,8 +296,9 @@ app.get("/employee/:id", async (req, res) => {
     }
 
     res.render("employee", {
-        employee: result.employee,
-        rows: rows
+    employee: result.employee,
+    rows: rows,
+    message: message
     })
 })
 
@@ -424,7 +426,7 @@ app.post("/upload-document/:id", upload.single("document"), async (req, res) => 
         return res.send("Failed to save document info")
     }
 
-    res.redirect("/employee/" + employeeId)
+    res.redirect("/employee/" + employeeId + "?message=Document uploaded successfully")
 })
 
 /**

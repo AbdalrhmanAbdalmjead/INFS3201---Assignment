@@ -4,6 +4,10 @@
 <p>Name: {{employee.name}}</p>
 <p>Phone: {{employee.phone}}</p>
 
+{{#if message}}
+    <p style="color:green;">{{message}}</p>
+{{/if}}
+
 {{#if employee.photo}}
     <p>
         <img src="/photos/{{employee.photo}}" alt="Employee Photo" width="150">
